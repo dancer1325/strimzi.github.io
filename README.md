@@ -57,13 +57,14 @@ We try to use the following process for blog posts:
 
 ## Quick starts
 
-[Strimzi quick starts](https://strimzi.io/quickstarts/) provide instructions for evaluating Strimzi using _Minikube_, _Kubernetes kind_ or _Docker Desktop_.
+* goal
+  * evaluating Strimzi |
+    * _Minikube_,
+    * _Kubernetes kind_ or
+    * _Docker Desktop_
 
-The source markdown files for the quick starts are maintained in the [`quickstarts`](/quickstarts) and [`/_includes/quickstarts`](/_includes/quickstarts) folders.
-
-If you spot something that needs updating or changing in the quick starts, you can open an issue or open a PR and contribute directly. 
-
-For more information on contributing to the Strimzi documentation, see the [Strimzi Documentation Contributor Guide](https://strimzi.io/contributing/guide/).
+* [`quickstarts`](/quickstarts) + [`/_includes/quickstarts`](/_includes/quickstarts)
+  * == source markdown files for the quick starts
 
 # Contributing
 
