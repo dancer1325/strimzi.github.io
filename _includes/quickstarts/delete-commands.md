@@ -1,32 +1,30 @@
 # Deleting your Apache Kafka cluster
 
-When you are finished with your Apache Kafka cluster, you can delete it by running:
+* 👀if you want to delete ALL Strimzi custom resources (including Apache Kafka cluster) / leave Strimzi cluster operator👀
 
-```shell
-kubectl -n kafka delete $(kubectl get strimzi -o name -n kafka)
-```
+    ```shell
+    kubectl -n kafka delete $(kubectl get strimzi -o name -n kafka)
+    ```
+  * -> STILL -- can respond to -- NEW Kafka CRs
 
-This will remove all Strimzi custom resources, including the Apache Kafka cluster and any KafkaTopic custom resources but leave the Strimzi cluster operator running so that it can respond to new Kafka custom resources.
+* delete the PVC / -- was used by the -- cluster
 
-Next, delete the Persistent Volume Claim (PVC) that was used by the cluster:
+    ```shell
+    kubectl delete pvc -l strimzi.io/name=my-cluster-kafka -n kafka
+    ```
 
-```shell
-kubectl delete pvc -l strimzi.io/name=my-cluster-kafka -n kafka
-```
-
-Without deleting the PVC, the next Kafka cluster you might start will fail as it will try to use the volume that belonged to the previous Apache Kafka cluster.
+  * ⚠️if you do NOT delete it -> NEXT Kafka cluster -- might start -- failing ⚠️
+    * Reason: 🧠 it will try to use the volume / -- belonged to the -- PREVIOUS Apache Kafka cluster 🧠
 
 # Deleting the Strimzi cluster operator
 
-When you want to fully remove the Strimzi cluster operator and associated definitions, you can run:
+* if you want to FULLY remove the Strimzi cluster operator + associated definitions -> run
 
-```shell
-kubectl -n kafka delete -f 'https://strimzi.io/install/latest?namespace=kafka'
-```
+    ```shell
+    kubectl -n kafka delete -f 'https://strimzi.io/install/latest?namespace=kafka'
+    ```
 
 # Deleting the `kafka` namespace
-
-Once it is not used, you can also delete the Kubernetes namespace:
 
 ```shell
 kubectl delete namespace kafka
