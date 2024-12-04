@@ -1,74 +1,93 @@
 # Deploy Strimzi using installation files
 
-Before deploying the Strimzi cluster operator, create a namespace called `kafka`:
+* create a namespace called `kafka`
 
-```shell
-kubectl create namespace kafka
-```
+    ```shell
+    kubectl create namespace kafka
+    ```
 
-Apply the Strimzi install files, including `ClusterRoles`, `ClusterRoleBindings` and some **Custom Resource Definitions** (`CRDs`). The CRDs define the schemas used for the custom resources (CRs, such as `Kafka`, `KafkaTopic` and so on) you will be using to manage Kafka clusters, topics and users.
+* Apply the Strimzi install files (`ClusterRoles`, `ClusterRoleBindings` + `CRDs`)
 
-```shell
-kubectl create -f 'https://strimzi.io/install/latest?namespace=kafka' -n kafka
-```
+    ```shell
+    kubectl create -f 'https://strimzi.io/install/latest?namespace=kafka' -n kafka
+    ```
 
-The YAML files for `ClusterRoles` and `ClusterRoleBindings` downloaded from strimzi.io contain a default namespace of `myproject`.
-The query parameter `namespace=kafka` updates these files to use `kafka` instead.
-By specifying `-n kafka` when running `kubectl create`, the definitions and configurations without a namespace reference are also installed in the `kafka` namespace.
-If there is a mismatch between namespaces, then the Strimzi cluster operator will not have the necessary permissions to perform its operations.
+  * CRDs
+    * == schemas -- used for the -- CRs (custom resources) -- _Example:_ `Kafka`, `KafkaTopic`, ... --
+      * CRs uses
+        * manage
+          * Kafka clusters,
+          * Kafka topics
+          * Kafka users
+  * `ClusterRoles` and `ClusterRoleBindings` .yaml 
+    * by default, | namespace `myproject`
+    * `... latest?namespace=kafka` -> these files | `kafka` namespace
+  * `-n kafka` -> definitions & configurations / WITHOUT a namespace referenced -> installed | `kafka` namespace
+  * Watch deployment of the Strimzi cluster operator
+    ```shell
+    kubectl get pod -n kafka --watch
+    ```
+  * operator's log
+    ```shell
+    kubectl logs deployment/strimzi-cluster-operator -n kafka -f
+    ```
 
-Follow the deployment of the Strimzi cluster operator:
-```shell
-kubectl get pod -n kafka --watch
-```
-
-You can also follow the operator's log:
-```shell
-kubectl logs deployment/strimzi-cluster-operator -n kafka -f
-```
-
-Once the operator is running it will watch for new custom resources and create the Kafka cluster, topics or users that correspond to those custom resources.
+* strimzi-cluster-operator
+  * watch for NEW CR
+  * create the 
+    * Kafka cluster,
+    * Kafka topics
+    * Kafka users
 
 # Create an Apache Kafka cluster
 
-Create a new Kafka custom resource to get a single node Apache Kafka cluster:
+* Create a NEW Kafka CR + 1! node Apache Kafka cluster
 
-```shell
-# Apply the `Kafka` Cluster CR file
-kubectl apply -f https://strimzi.io/examples/latest/kafka/kraft/kafka-single-node.yaml -n kafka 
-```
+    ```shell
+    # Apply the `Kafka` Cluster CR file
+    kubectl apply -f https://strimzi.io/examples/latest/kafka/kraft/kafka-single-node.yaml -n kafka 
+    ```
 
-Wait while Kubernetes starts the required pods, services, and so on:
+* check the kafka cluster
+  * wait
 
-```shell
-kubectl wait kafka/my-cluster --for=condition=Ready --timeout=300s -n kafka 
-```
+    ```shell
+    kubectl wait kafka/my-cluster --for=condition=Ready --timeout=300s -n kafka 
+    ```
 
-The above command might timeout if you're downloading images over a slow connection. If that happens you can always run it again.
+  * `kubectl get kafak -n kafka`
 
 # Send and receive messages
 
-With the cluster running, run a simple producer to send messages to a Kafka topic (the topic is automatically created):
+* run a simple producer / -- send messages to a -- Kafka topic
+  * -> topic is AUTOMATICALLY created
 
-```shell
-kubectl -n kafka run kafka-producer -ti --image=quay.io/strimzi/kafka:{{site.data.releases.operator[0].version}}-kafka-{{site.data.releases.operator[0].defaultKafkaVersion}} --rm=true --restart=Never -- bin/kafka-console-producer.sh --bootstrap-server my-cluster-kafka-bootstrap:9092 --topic my-topic
-```
+    ```shell
+    kubectl -n kafka run kafka-producer -ti --image=quay.io/strimzi/kafka:{{site.data.releases.operator[0].version}}-kafka-{{site.data.releases.operator[0].defaultKafkaVersion}} --rm=true --restart=Never -- bin/kafka-console-producer.sh --bootstrap-server my-cluster-kafka-bootstrap:9092 --topic my-topic
+    
+    // Example:
+    kubectl -n kafka run kafka-producer -ti --image=quay.io/strimzi/kafka:0.44.0-kafka-3.8.0 --rm=true --restart=Never -- bin/kafka-console-producer.sh --bootstrap-server my-cluster-kafka-bootstrap:9092 --topic my-topic
+    ```
 
-Once everything is set up correctly, you'll see a prompt where you can type in your messages:
-```shell
-If you don't see a command prompt, try pressing enter.
+    * type your messages | prompt
+    ```shell
+    If you don't see a command prompt, try pressing enter.
+    
+    >Hello Strimzi!
+    ```
 
->Hello Strimzi!
-```
+* create a consumer / read the topic
+  * | different terminal, run
 
-And to receive them in a different terminal, run:
-
-```shell
-kubectl -n kafka run kafka-consumer -ti --image=quay.io/strimzi/kafka:{{site.data.releases.operator[0].version}}-kafka-{{site.data.releases.operator[0].defaultKafkaVersion}} --rm=true --restart=Never -- bin/kafka-console-consumer.sh --bootstrap-server my-cluster-kafka-bootstrap:9092 --topic my-topic --from-beginning
-```
-If everything works as expected, you'll be able to see the message you produced in the previous step:
-```shell
-If you don't see a command prompt, try pressing enter.
-
->Hello Strimzi!
-```
+    ```shell
+    kubectl -n kafka run kafka-consumer -ti --image=quay.io/strimzi/kafka:{{site.data.releases.operator[0].version}}-kafka-{{site.data.releases.operator[0].defaultKafkaVersion}} --rm=true --restart=Never -- bin/kafka-console-consumer.sh --bootstrap-server my-cluster-kafka-bootstrap:9092 --topic my-topic --from-beginning
+    
+    // Example:
+    kubectl -n kafka run kafka-consumer -ti --image=quay.io/strimzi/kafka:0.44.0-kafka-3.8.0 --rm=true --restart=Never -- bin/kafka-console-consumer.sh --bootstrap-server my-cluster-kafka-bootstrap:9092 --topic my-topic --from-beginning
+    ```
+    * you'll see the messages / produced
+    ```shell
+    If you don't see a command prompt, try pressing enter.
+    
+    >Hello Strimzi!
+    ```
